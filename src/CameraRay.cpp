@@ -109,7 +109,8 @@ void CameraRay::draw_rays()
 	ofSetColor(255, 0, 255);
 	for each (auto ray in rays_global)
 	{
-		ofDrawLine(position, position.get() + ray * RAY_LENGTH);
+		//ofDrawLine(position, position.get() + ray * RAY_LENGTH);
+		ofDrawLine(position, ray);
 	}
 
 	ofPopStyle();
@@ -247,5 +248,7 @@ ofVec3f CameraRay::calc_global_ray(ofVec3f _ray)
 	float   angle;
 	qt.getRotate(angle, qAxsis);
 
-	return (_ray.rotate(angle, qAxsis)).normalize();
+	auto ray_global = position.get() + _ray.rotate(angle, qAxsis).normalize() * RAY_LENGTH;
+
+	return ray_global;
 }

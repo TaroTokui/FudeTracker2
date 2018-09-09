@@ -43,7 +43,20 @@ void ofApp::update()
 	cam2->update();
 
 	// calc cross point
-	calc_cross_point_2d();
+	cross_points.clear();
+	ofPoint p1 = cam1->getPosition();
+	ofPoint p3 = cam2->getPosition();
+	for each (auto ray1 in cam1->getRays())
+	{
+		auto p2 = ray1;
+
+		for each (auto ray2 in cam2->getRays())
+		{
+			auto p4 = ray2;
+			cross_points.push_back(calc_cross_point_2d(p1, p2, p3, p4));
+		}
+	}
+
 
 	switch (sequence)
 	{
@@ -173,6 +186,16 @@ void ofApp::draw_3d_view()
 	cam1->draw_rays();
 	cam2->draw_rays();
 
+	ofSetColor(255);
+	for each (auto p in cross_points)
+	{
+		ofPushMatrix();
+		//ofDrawEllipse(p, 5, 5);
+		ofTranslate(p);
+		ofDrawSphere(1);
+		ofPopMatrix();
+	}
+
 	cam.end();
 }
 
@@ -193,12 +216,20 @@ void ofApp::calibration_2d()
 }
 
 //--------------------------------------------------------------
-void ofApp::calc_cross_point_2d()
+ofPoint ofApp::calc_cross_point_2d(ofPoint p1, ofPoint p2, ofPoint p3, ofPoint p4)
 {
-	//for each (auto l1 in cam1->getRays())
-	//{
+	//cout << "p1:" << p1 << ", p2:" << p2 << ", p3:" << p3 << ", p4:" << p4 << endl;
+	auto a1 = (p2.z - p1.z) / (p2.x - p1.x);
+	auto a3 = (p4.z - p3.z) / (p4.x - p3.x);
 
-	//}
+	auto x = (a1*p1.x - p1.z - a3*p3.x + p3.z) / (a1 - a3);
+	auto y = (p2.z - p1.z) / (p2.x - p1.x)*(x - p1.x) + p1.z;
+
+	ofPoint p(x, 0, y);
+
+	//cout << p << endl;
+
+	return p;
 }
 
 //--------------------------------------------------------------

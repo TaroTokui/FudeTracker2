@@ -50,13 +50,14 @@ private:
 	void draw_3d_view();
 	void draw_plane();
 	void calibration_2d();
-	void calc_cross_point_2d();
+	ofPoint calc_cross_point_2d(ofPoint p1, ofPoint p2, ofPoint p3, ofPoint p4);
 	void correct_position_2d();
 	void set_calib_seq(int key);
 
 	// tracking camera
 	CameraRay *cam1;
 	CameraRay *cam2;
+	vector<ofPoint> cross_points;
 
 	// rendering camera
 	ofEasyCam cam;
