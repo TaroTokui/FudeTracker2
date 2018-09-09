@@ -6,6 +6,7 @@
 #include "ofxGui.h"
 
 static const int CAMERA_COUNT = 3;	// cam 1, cam2 and face cam
+static const int RAY_LENGTH = 100;
 
 class CameraRay
 {

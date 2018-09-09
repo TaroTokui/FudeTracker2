@@ -193,7 +193,8 @@ void CameraRay::marker_to_ray()
 
 	for each (auto target in markers)
 	{
-		auto dir = ofVec3f(target.x, target.y, 0) - origin;
+		//auto dir = ofVec3f(target.x, target.y, 0) - origin;	// 3d
+		auto dir = (ofVec3f(target.x, target.y, 0) - origin) * ofVec3f(1,0,1);	// 2d (x-z)
 		auto ray = dir.normalize();
 
 		rays.push_back(ray);
