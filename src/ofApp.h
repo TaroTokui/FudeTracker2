@@ -1,9 +1,8 @@
 #pragma once
 
 #include "ofMain.h"
-//#include "ofxCv.h"	// oF 0.9.8 ver.
-//#include "ofxOpenCv.h"
 #include "ofxGui.h"
+#include "ofxOsc.h"
 
 #include "CameraRay.h"
 #include "HomographyTransform.h"
@@ -55,6 +54,9 @@ private:
 	ofPoint correct_position_2d(ofVec3f p);
 	void set_calib_seq(int key);
 	void updateHomography();
+	void setup_osc();
+	void send_data(ofPoint pos, bool isTouched);
+	ofVec2f adjust_position(ofPoint pos);
 
 	// tracking camera
 	CameraRay *cam1;
@@ -68,10 +70,26 @@ private:
 	CHomographyTransform homography;
 	ofVec2f src_points[4];
 
+	//OSC params------------------
+	string targetIP;
+	int targetPort;
+	string oscAddress;
+	ofxOscSender sender;
+
 	// gui
-	ofxPanel gui;
+	ofxPanel gui, adjust_gui;
 	ofParameterGroup gui_params;
 	bool showGui;
+
+	ofParameterGroup adjust_params;
+	ofParameter<bool> flipX;
+	ofParameter<bool> flipY;
+	ofParameter<bool> swapXY;
+	ofParameter<ofVec2f> camera_offset;
+	ofParameter<ofVec2f> camera_offset_tune;
+	ofParameter<ofVec2f> camera_scale;
+	ofParameter<ofVec2f> camera_scale_tune;
+	ofParameter<bool> manual_mode;
 
 	APP_VIEW_MODE mode;
 	APP_SEQUENCE sequence;

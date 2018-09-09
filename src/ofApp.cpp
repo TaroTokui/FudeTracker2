@@ -26,6 +26,21 @@ void ofApp::setup()
 	gui.setName(gui_settings);
 	gui.setup(gui_params);
 	gui.loadFromFile(gui_settings + ".xml");
+
+	adjust_params.setName("params");
+	adjust_params.add(manual_mode.set("manual mode", false));
+	adjust_params.add(flipX.set("flipX", true));
+	adjust_params.add(flipY.set("flipY", true));
+	adjust_params.add(swapXY.set("swapXY", true));
+	adjust_params.add(camera_offset.set("offset", ofVec2f(0, 0), ofVec2f(-0.5, -0.5), ofVec2f(1.5, 1.5)));
+	adjust_params.add(camera_offset_tune.set("offset tune", ofVec2f(0, 0), ofVec2f(-0.1, -0.1), ofVec2f(0.1, 0.1)));
+	adjust_params.add(camera_scale.set("scale", ofVec2f(1, 1), ofVec2f(0.3, 0.3), ofVec2f(1.5, 1.5)));
+	adjust_params.add(camera_scale_tune.set("scale tune", ofVec2f(0, 0), ofVec2f(-0.1, -0.1), ofVec2f(0.1, 0.1)));
+	
+	adjust_gui.setup(adjust_params, "adjust_settings.xml");
+	adjust_gui.loadFromFile("adjust_settings.xml");
+
+
 	showGui = true;
 
 	// setup camera
@@ -40,6 +55,9 @@ void ofApp::setup()
 	src_points[3] = ofVec2f(0, 100);
 
 	updateHomography();
+
+	// setup osc
+	setup_osc();
 }
 
 //--------------------------------------------------------------
@@ -79,15 +97,14 @@ void ofApp::update()
 		break;
 	}
 
-	if (cross_points.size() > 0)
-	{
-		ofVec3f p = ofVec3f(cross_points[0].x, cross_points[0].z, 0);
-		cout << p << endl;
-		cout << correct_position_2d(p) << endl;
-	}
+	if (cross_points.size() < 1) return;
+
+	ofVec3f p = ofVec3f(cross_points[0].x, cross_points[0].z, 0);
+	//cout << p << endl;
+	//cout << correct_position_2d(p) << endl;
 
 	// send osc message
-
+	send_data(p, ofGetKeyPressed(' '));
 }
 
 //--------------------------------------------------------------
@@ -118,6 +135,7 @@ void ofApp::draw(){
 	if (showGui)
 	{
 		gui.draw();
+		adjust_gui.draw();
 	}
 
 	ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 10);
@@ -308,4 +326,103 @@ void ofApp::updateHomography()
 	homography.calcHomography(srcPoints, dstPoints);
 
 	//cout << homography.getTransformedPoint(ofPoint(0.5,0.5)) << endl;
+}
+
+//--------------------------------------------------------------
+void ofApp::setup_osc()
+{
+	// OSC
+	ofXml XML;
+	if (XML.load("osc_settings.xml")) {
+		cout << "mySettings.xml loaded!" << endl;
+	}
+
+	if (XML.exists("//IP")) {
+		targetIP = XML.getValue<string>("//IP");
+	}
+	else {
+		targetIP = "localhost";
+	}
+
+	if (XML.exists("//PORT")) {
+		targetPort = XML.getValue<int>("//PORT");
+	}
+	else {
+		targetPort = 20001;
+	}
+
+	if (XML.exists("//ADDRESS")) {
+		oscAddress = "/" + XML.getValue<string>("//ADDRESS");
+	}
+	else {
+		oscAddress = "/kinect1";
+	}
+
+	sender.setup(targetIP, targetPort); // open an outgoing connection to HOST:PORT
+}
+
+//--------------------------------------------------------------
+void ofApp::send_data(ofPoint pos, bool isTouched)
+{
+	ofxOscMessage m;
+
+	// scale and add offset
+	ofPoint posNormal = adjust_position(pos);
+
+	//cout << depthPos << endl;
+	m.clear();
+	m.setAddress("/position");
+	m.addFloatArg(posNormal.x);
+	m.addFloatArg(posNormal.y);
+	m.addFloatArg(posNormal.z);
+
+	sender.sendMessage(m, false);
+
+	m.clear();
+	m.setAddress("/isTouch");
+
+	if (manual_mode)
+	{
+		//if (ofGetKeyPressed(' '))
+		//{
+		//	m.addIntArg(1);
+		//}
+		//else {
+		//	m.addIntArg(0);
+		//}
+		m.addIntArg(1);
+	}
+	else if (isTouched)
+	{
+		m.addIntArg(1);
+	}
+	else {
+		m.addIntArg(0);
+	}
+	sender.sendMessage(m, false);
+
+	cout << posNormal.x << " " << posNormal.y << " " << isTouched << endl;
+
+}
+
+//--------------------------------------------------------------
+ofVec2f ofApp::adjust_position(ofPoint pos)
+{
+	if (flipX)
+	{
+		pos.x = 1.0 - pos.x;
+	}
+	if (flipY)
+	{
+		pos.y = 1.0 - pos.y;
+	}
+	float x = pos.x * (camera_scale->x + camera_scale_tune->x) + camera_offset->x + camera_offset_tune->x;
+	float y = pos.y * (camera_scale->y + camera_scale_tune->y) + camera_offset->y + camera_offset_tune->y;
+	if (swapXY)
+	{
+		float tmp = x;
+		x = y;
+		y = tmp;
+	}
+	return ofVec2f(x, y);
 }
