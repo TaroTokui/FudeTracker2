@@ -33,6 +33,13 @@ void ofApp::setup()
 
 	mode = MODE_IMAGE_PROCESSING;
 	sequence = SEQUENCE_RUN;
+
+	src_points[0] = ofVec2f(0, 0);
+	src_points[1] = ofVec2f(100, 0);
+	src_points[2] = ofVec2f(100, 100);
+	src_points[3] = ofVec2f(0, 100);
+
+	updateHomography();
 }
 
 //--------------------------------------------------------------
@@ -65,11 +72,18 @@ void ofApp::update()
 		break;
 
 	case SEQUENCE_RUN:
-		correct_position_2d();
+		//correct_position_2d();
 		break;
 
 	default:
 		break;
+	}
+
+	if (cross_points.size() > 0)
+	{
+		ofVec3f p = ofVec3f(cross_points[0].x, cross_points[0].z, 0);
+		cout << p << endl;
+		cout << correct_position_2d(p) << endl;
 	}
 
 	// send osc message
@@ -120,6 +134,10 @@ void ofApp::keyPressed(int key){
 
 	case '2':
 		mode = MODE_3D;
+		break;
+
+	case 'h':
+		updateHomography();
 		break;
 
 	case 'g':
@@ -196,6 +214,15 @@ void ofApp::draw_3d_view()
 		ofPopMatrix();
 	}
 
+	ofSetColor(255,0,0);
+	for each (auto p in src_points)
+	{
+		ofPushMatrix();
+		ofTranslate(p.x, 0, p.y);
+		ofDrawSphere(1);
+		ofPopMatrix();
+	}
+
 	cam.end();
 }
 
@@ -216,6 +243,12 @@ void ofApp::calibration_2d()
 }
 
 //--------------------------------------------------------------
+ofPoint ofApp::correct_position_2d(ofVec3f p)
+{
+	return homography.getTransformedPoint(p);
+}
+
+//--------------------------------------------------------------
 ofPoint ofApp::calc_cross_point_2d(ofPoint p1, ofPoint p2, ofPoint p3, ofPoint p4)
 {
 	//cout << "p1:" << p1 << ", p2:" << p2 << ", p3:" << p3 << ", p4:" << p4 << endl;
@@ -233,14 +266,16 @@ ofPoint ofApp::calc_cross_point_2d(ofPoint p1, ofPoint p2, ofPoint p3, ofPoint p
 }
 
 //--------------------------------------------------------------
-void ofApp::correct_position_2d()
-{
-
-}
-
-//--------------------------------------------------------------
 void ofApp::set_calib_seq(int key)
 {
+	if (key == OF_KEY_RETURN)
+	{
+		if (cross_points.size() > 0)
+		{
+			src_points[(int)calib_seq] = ofVec2f(cross_points[0].x, cross_points[0].z);	// use first point
+		}
+	}
+
 	if (key != OF_KEY_RIGHT) return;
 
 	// set next sequence 
@@ -252,4 +287,25 @@ void ofApp::set_calib_seq(int key)
 	}
 
 	cout << "caliblation sequence " << calib_seq << endl;
+}
+
+//--------------------------------------------------------------
+void ofApp::updateHomography()
+{
+	vector<cv::Point2f> srcPoints, dstPoints;
+
+	// input points from cross points
+	//ofVec2f* maskPoints = maskGenerator.getHomographyPoints();
+	srcPoints.push_back(cv::Point2f(src_points[0].x, src_points[0].y));
+	srcPoints.push_back(cv::Point2f(src_points[1].x, src_points[1].y));
+	srcPoints.push_back(cv::Point2f(src_points[2].x, src_points[2].y));
+	srcPoints.push_back(cv::Point2f(src_points[3].x, src_points[3].y));
+
+	dstPoints.push_back(cv::Point2f(0, 0));
+	dstPoints.push_back(cv::Point2f(1, 0));
+	dstPoints.push_back(cv::Point2f(1, 1));
+	dstPoints.push_back(cv::Point2f(0, 1));
+	homography.calcHomography(srcPoints, dstPoints);
+
+	//cout << homography.getTransformedPoint(ofPoint(0.5,0.5)) << endl;
 }

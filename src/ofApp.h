@@ -6,6 +6,7 @@
 #include "ofxGui.h"
 
 #include "CameraRay.h"
+#include "HomographyTransform.h"
 
 static const int CAMERA_W = 1280;
 static const int CAMERA_H = 720;
@@ -51,8 +52,9 @@ private:
 	void draw_plane();
 	void calibration_2d();
 	ofPoint calc_cross_point_2d(ofPoint p1, ofPoint p2, ofPoint p3, ofPoint p4);
-	void correct_position_2d();
+	ofPoint correct_position_2d(ofVec3f p);
 	void set_calib_seq(int key);
+	void updateHomography();
 
 	// tracking camera
 	CameraRay *cam1;
@@ -61,6 +63,10 @@ private:
 
 	// rendering camera
 	ofEasyCam cam;
+
+	// homography params
+	CHomographyTransform homography;
+	ofVec2f src_points[4];
 
 	// gui
 	ofxPanel gui;

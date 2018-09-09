@@ -197,8 +197,6 @@ void CameraRay::image_prcessing()
 	processed_fbo.end();
 	ofPopStyle();
 
-
-
 }
 
 //--------------------------------------------------------------
