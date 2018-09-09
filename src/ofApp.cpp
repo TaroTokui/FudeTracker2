@@ -56,8 +56,12 @@ void ofApp::update()
 	cvtColor(src_mat_2, gray_mat_2, CV_BGR2GRAY);
 
 	// binarize with threshold
+	threshold(gray_mat_1, binary_mat_1, binarize_threshold, 255, THRESH_BINARY);
+	threshold(gray_mat_2, binary_mat_2, binarize_threshold, 255, THRESH_BINARY);
 
 	// noise reduction
+	morphologyEx(binary_mat_1, morph_mat_1, MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
+	morphologyEx(binary_mat_2, morph_mat_2, MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
 
 	// find contour
 
@@ -76,11 +80,11 @@ void ofApp::draw(){
 	cam_1.draw(0, 0, w, h);
 	cam_2.draw(w, 0, w, h);
 
-	img_1.setFromPixels(gray_mat_1.data, CAMERA_W, CAMERA_H, OF_IMAGE_GRAYSCALE);
+	img_1.setFromPixels(morph_mat_1.data, CAMERA_W, CAMERA_H, OF_IMAGE_GRAYSCALE);
 	img_1.update();
 	img_1.draw(0, h, w, h);
 
-	img_2.setFromPixels(gray_mat_2.data, CAMERA_W, CAMERA_H, OF_IMAGE_GRAYSCALE);
+	img_2.setFromPixels(binary_mat_2.data, CAMERA_W, CAMERA_H, OF_IMAGE_GRAYSCALE);
 	img_2.update();
 	img_2.draw(w, h, w, h);
 

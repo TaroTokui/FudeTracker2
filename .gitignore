@@ -17,6 +17,7 @@ Makefile
 *.xcconfig
 *.suo
 *db
+*.rc
 
 *.depend
 *.layout
