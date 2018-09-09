@@ -24,18 +24,37 @@ void ofApp::setup()
 
 	img_1.allocate(CAMERA_W, CAMERA_H, OF_IMAGE_GRAYSCALE);
 	img_2.allocate(CAMERA_W, CAMERA_H, OF_IMAGE_GRAYSCALE);
+	processed_fbo_1.allocate(CAMERA_W, CAMERA_H);
+	processed_fbo_2.allocate(CAMERA_W, CAMERA_H);
 
 	// load shader
 
 	// setup gui
 	gui_params.setName("tracking");
 	gui_params.add(binarize_threshold.set("binarize", 128, 0, 255));
+	gui_params.add(contour_min.set("contour_min", 100, 0, 1000));
+	gui_params.add(contour_max.set("contour_max", 1000, 0, 10000));
 
 	string gui_settings = "settings";
 	gui.setName(gui_settings);
 	gui.setup(gui_params);
 	gui.loadFromFile(gui_settings + ".xml");
 	showGui = true;
+
+	// setup contour finder
+	contour_finder_1.setFindHoles(false);
+	contour_finder_1.setMinArea(contour_min);
+	contour_finder_1.setMaxArea(contour_max);
+	contour_finder_1.setThreshold(15);
+	contour_finder_1.getTracker().setPersistence(15);
+	contour_finder_1.getTracker().setMaximumDistance(32);
+
+	contour_finder_2.setFindHoles(false);
+	contour_finder_2.setMinArea(contour_min);
+	contour_finder_2.setMaxArea(contour_max);
+	contour_finder_2.setThreshold(15);
+	contour_finder_2.getTracker().setPersistence(15);
+	contour_finder_2.getTracker().setMaximumDistance(32);
 
 }
 
@@ -49,21 +68,10 @@ void ofApp::update()
 	cam_1.update();
 	cam_2.update();
 
-	// convert to cv mat
-	ofxCv::toOf(src_mat_1, cam_1.getPixels());
-	cvtColor(src_mat_1, gray_mat_1, CV_BGR2GRAY);
-	ofxCv::toOf(src_mat_2, cam_2.getPixels());
-	cvtColor(src_mat_2, gray_mat_2, CV_BGR2GRAY);
+	// find fude marker
+	image_prcessing();
 
-	// binarize with threshold
-	threshold(gray_mat_1, binary_mat_1, binarize_threshold, 255, THRESH_BINARY);
-	threshold(gray_mat_2, binary_mat_2, binarize_threshold, 255, THRESH_BINARY);
-
-	// noise reduction
-	morphologyEx(binary_mat_1, morph_mat_1, MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
-	morphologyEx(binary_mat_2, morph_mat_2, MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
-
-	// find contour
+	// calc fude position
 
 	// send osc message
 
@@ -77,8 +85,10 @@ void ofApp::draw(){
 
 	ofBackground(0);
 
-	cam_1.draw(0, 0, w, h);
-	cam_2.draw(w, 0, w, h);
+	//cam_1.draw(0, 0, w, h);
+	//cam_2.draw(w, 0, w, h);
+	processed_fbo_1.draw(0, 0, w, h);
+	processed_fbo_2.draw(w, 0, w, h);
 
 	img_1.setFromPixels(morph_mat_1.data, CAMERA_W, CAMERA_H, OF_IMAGE_GRAYSCALE);
 	img_1.update();
@@ -87,6 +97,9 @@ void ofApp::draw(){
 	img_2.setFromPixels(binary_mat_2.data, CAMERA_W, CAMERA_H, OF_IMAGE_GRAYSCALE);
 	img_2.update();
 	img_2.draw(w, h, w, h);
+
+	//contour_finder_1.draw();
+	//contour_finder_1.draw();
 
 	ofSetColor(255);
 	if (showGui)
@@ -185,4 +198,54 @@ void ofApp::setup_camera()
 	camera_is_initialized = true;
 
 	return;
+}
+
+//--------------------------------------------------------------
+void ofApp::image_prcessing()
+{
+
+	// convert to cv mat
+	ofxCv::toOf(src_mat_1, cam_1.getPixels());
+	cvtColor(src_mat_1, gray_mat_1, CV_BGR2GRAY);
+	ofxCv::toOf(src_mat_2, cam_2.getPixels());
+	cvtColor(src_mat_2, gray_mat_2, CV_BGR2GRAY);
+
+	// binarize with threshold
+	threshold(gray_mat_1, binary_mat_1, binarize_threshold, 255, THRESH_BINARY);
+	threshold(gray_mat_2, binary_mat_2, binarize_threshold, 255, THRESH_BINARY);
+
+	// noise reduction
+	morphologyEx(binary_mat_1, morph_mat_1, MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
+	morphologyEx(binary_mat_2, morph_mat_2, MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
+
+	// find contour
+	contour_finder_1.setMinArea(contour_min);
+	contour_finder_1.setMaxArea(contour_max);
+	contour_finder_2.setMinArea(contour_min);
+	contour_finder_2.setMaxArea(contour_max);
+
+	contour_finder_1.findContours(morph_mat_1);
+	contour_finder_2.findContours(morph_mat_2);
+
+	// update processed image
+	ofPushStyle();
+	ofEnableBlendMode(OF_BLENDMODE_ADD);
+	processed_fbo_1.begin();
+	ofBackground(0);
+	cam_1.draw(0, 0, CAMERA_W, CAMERA_H);
+	ofSetColor(255, 0, 255);
+	contour_finder_1.draw();
+	processed_fbo_1.end();
+	ofPopStyle();
+
+	ofPushStyle();
+	ofEnableBlendMode(OF_BLENDMODE_ADD);
+	processed_fbo_2.begin();
+	ofBackground(0);
+	cam_2.draw(0, 0, CAMERA_W, CAMERA_H);
+	ofSetColor(255, 0, 255);
+	contour_finder_2.draw();
+	processed_fbo_2.end();
+	ofPopStyle();
+
 }

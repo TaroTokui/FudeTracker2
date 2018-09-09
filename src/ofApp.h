@@ -25,6 +25,7 @@ class ofApp : public ofBaseApp{
 private:
 
 	void setup_camera();
+	void image_prcessing();
 
 	ofVideoGrabber cam_1;
 	ofVideoGrabber cam_2;
@@ -41,12 +42,24 @@ private:
 	cv::Mat morph_mat_1;
 	cv::Mat morph_mat_2;
 
+	ofxCv::ContourFinder contour_finder_1;
+	ofxCv::ContourFinder contour_finder_2;
+
 	ofImage img_1;
 	ofImage img_2;
+
+	ofFbo processed_fbo_1;
+	ofFbo processed_fbo_2;
+
+	// marker points
+	vector<ofVec2f> marker_1;
+	vector<ofVec2f> marker_2;
 
 	// gui
 	ofxPanel gui;
 	ofParameterGroup gui_params;
 	ofParameter<int> binarize_threshold;
+	ofParameter<int> contour_min;
+	ofParameter<int> contour_max;
 	bool showGui;
 };
