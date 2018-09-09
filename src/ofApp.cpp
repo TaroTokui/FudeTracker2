@@ -150,6 +150,7 @@ void ofApp::draw_3d_view()
 	draw_plane();
 	cam1->draw_camera_position();
 	cam2->draw_camera_position();
+
 	cam.end();
 }
 

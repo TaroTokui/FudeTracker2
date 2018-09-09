@@ -27,6 +27,7 @@ CameraRay::CameraRay(int w, int h, int index)
 	params.add(position.set("pos", ofVec3f(0, 0, 0), ofVec3f(-100, -100, -100), ofVec3f(100, 100, 100)));
 	params.add(rotation.set("rotation", ofVec3f(0, 0, 0), ofVec3f(-90, -90, -90), ofVec3f(90, 90, 90)));
 	params.add(up_vector.set("up", ofVec3f(0, 0, 0), ofVec3f(-1, -1, -10), ofVec3f(1, 1, 1)));
+	params.add(fulcrum_distance.set("fulcrum_distance", 1, 0, 2));
 
 	// setup contour finder
 	contour_finder.setFindHoles(false);
@@ -49,6 +50,9 @@ void CameraRay::update()
 
 	// find fude marker
 	image_prcessing();
+
+	// calc ray
+	marker_to_ray();
 }
 
 //--------------------------------------------------------------
@@ -82,6 +86,13 @@ void CameraRay::draw_camera_position()
 	ofDrawBox(2);
 	ofDrawRotationAxes(5, 0.1);
 	//ofDrawAxis(20);
+
+	// draw rays
+	ofSetColor(255, 255, 0);
+	for each (auto ray in rays)
+	{
+		ofDrawLine(ofVec3f(0, 0, 0), ray * RAY_LENGTH);
+	}
 
 	ofPopMatrix();
 
@@ -142,6 +153,22 @@ void CameraRay::image_prcessing()
 
 	contour_finder.findContours(morph_mat);
 
+	// set markers
+	markers.clear();
+
+	for each (auto marker in contour_finder.getBoundingRects())
+	{
+		auto x = marker.x / (float)cam_w;
+		auto y = marker.y / (float)cam_h;
+
+		auto x2 = ofMap(x, 0, 1, -1, 1);
+		auto y2 = ofMap(y, 0, 1, 1, -1);
+
+		ofVec2f pos = ofVec2f(x2, y2);
+		markers.push_back(pos);
+	}
+
+
 	// update processed image
 	ofPushStyle();
 	ofEnableBlendMode(OF_BLENDMODE_ADD);
@@ -153,6 +180,25 @@ void CameraRay::image_prcessing()
 	processed_fbo.end();
 	ofPopStyle();
 
-	cout << "cam1: " << contour_finder.size() << endl;
 
+
+}
+
+//--------------------------------------------------------------
+void CameraRay::marker_to_ray()
+{
+	rays.clear();
+
+	auto origin = ofVec3f(0, 0, -fulcrum_distance);
+
+	for each (auto target in markers)
+	{
+		auto dir = ofVec3f(target.x, target.y, 0) - origin;
+		auto ray = dir.normalize();
+
+		rays.push_back(ray);
+
+		cout << dir.normalize() << endl;
+
+	}
 }

@@ -29,6 +29,7 @@ private:
 
 	void setup_camera(int id);
 	void image_prcessing();
+	void marker_to_ray();
 
 	ofVideoGrabber cam;
 
@@ -47,7 +48,7 @@ private:
 	ofFbo processed_fbo;
 
 	// marker points
-	vector<ofVec2f> marker;
+	vector<ofVec2f> markers;
 
 	// gui
 	ofParameter<int> binarize_threshold;
@@ -56,6 +57,7 @@ private:
 	ofParameter<ofVec3f> position;
 	ofParameter<ofVec3f> rotation;
 	ofParameter<ofVec3f> up_vector;
+	ofParameter<float> fulcrum_distance;
 
 	int cam_w;
 	int cam_h;
