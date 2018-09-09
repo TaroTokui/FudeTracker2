@@ -15,6 +15,7 @@ public:
 
 	void update();
 	void draw_processed_image(int x, int y);
+	void draw_camera_position();
 
 	// getter
 	ofVec3f getPosition() { return position; }
@@ -58,8 +59,5 @@ private:
 
 	int cam_w;
 	int cam_h;
-	//ofVec3f position;
-	//ofVec3f rotation;
-	//ofVec3f up_vector;
 	vector<ofVec3f> rays;
 };

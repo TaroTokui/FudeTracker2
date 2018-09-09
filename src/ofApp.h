@@ -10,6 +10,15 @@
 static const int CAMERA_W = 1280;
 static const int CAMERA_H = 720;
 
+static const int PLANE_SIZE = 100;
+
+enum APP_VIEW_MODE {
+	MODE_IMAGE_PROCESSING,
+	//MODE_CALIBRATION,
+	//MODE_RUN,
+	MODE_3D,
+};
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -26,11 +35,20 @@ class ofApp : public ofBaseApp{
 		
 private:
 
+	void draw_3d_view();
+	void draw_plane();
+
+	// tracking camera
 	CameraRay *cam1;
 	CameraRay *cam2;
+
+	// rendering camera
+	ofEasyCam cam;
 
 	// gui
 	ofxPanel gui;
 	ofParameterGroup gui_params;
 	bool showGui;
+
+	APP_VIEW_MODE mode;
 };

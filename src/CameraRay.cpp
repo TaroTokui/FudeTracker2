@@ -24,8 +24,8 @@ CameraRay::CameraRay(int w, int h, int index)
 	params.add(binarize_threshold.set("binarize", 128, 0, 255));
 	params.add(contour_min.set("contour_min", 100, 0, 1000));
 	params.add(contour_max.set("contour_max", 1000, 0, 10000));
-	params.add(position.set("pos", ofVec3f(0, 0, 0), ofVec3f(-10, -10, -10), ofVec3f(10, 10, 10)));
-	params.add(rotation.set("rotation", ofVec3f(0, 0, 0), ofVec3f(-10, -10, -10), ofVec3f(10, 10, 10)));
+	params.add(position.set("pos", ofVec3f(0, 0, 0), ofVec3f(-100, -100, -100), ofVec3f(100, 100, 100)));
+	params.add(rotation.set("rotation", ofVec3f(0, 0, 0), ofVec3f(-90, -90, -90), ofVec3f(90, 90, 90)));
 	params.add(up_vector.set("up", ofVec3f(0, 0, 0), ofVec3f(-1, -1, -10), ofVec3f(1, 1, 1)));
 
 	// setup contour finder
@@ -64,6 +64,33 @@ void CameraRay::draw_processed_image(int x, int y)
 	img.draw(x, y+h, w, h);
 
 }
+
+//--------------------------------------------------------------
+void CameraRay::draw_camera_position()
+{
+	ofPushStyle();
+	ofSetColor(255);
+
+	ofPushMatrix();
+
+	ofTranslate(position);
+
+	ofRotateX(rotation.get().x);
+	ofRotateY(rotation.get().y);
+	ofRotateZ(rotation.get().z);
+
+	ofDrawBox(2);
+	ofDrawRotationAxes(5, 0.1);
+	//ofDrawAxis(20);
+
+	ofPopMatrix();
+
+	ofPopStyle();
+}
+
+//==============================================================
+// private method
+//==============================================================
 
 //--------------------------------------------------------------
 void CameraRay::setup_camera(int id)

@@ -28,6 +28,10 @@ void ofApp::setup()
 	gui.loadFromFile(gui_settings + ".xml");
 	showGui = true;
 
+	// setup camera
+	cam.setDistance(100);
+
+	mode = MODE_IMAGE_PROCESSING;
 }
 
 //--------------------------------------------------------------
@@ -51,8 +55,21 @@ void ofApp::draw(){
 
 	ofBackground(0);
 
-	cam1->draw_processed_image(0, 0);
-	cam2->draw_processed_image(w, 0);
+	switch (mode)
+	{
+	case MODE_IMAGE_PROCESSING:
+		cam1->draw_processed_image(0, 0);
+		cam2->draw_processed_image(w, 0);
+		break;
+
+	case MODE_3D:
+		draw_3d_view();
+		break;
+
+	default:
+		break;
+	}
+
 
 	ofSetColor(255);
 	if (showGui)
@@ -68,12 +85,24 @@ void ofApp::keyPressed(int key){
 
 	switch (key)
 	{
+	case '1':
+		mode = MODE_IMAGE_PROCESSING;
+		break;
+
+	case '2':
+		mode = MODE_3D;
+		break;
+
 	case 'g':
 		showGui = !showGui;
 		break;
 
 	case 'f':
 		ofToggleFullscreen();
+		break;
+
+	case 'r':
+		cam.reset();
 		break;
 
 	default:
@@ -110,3 +139,26 @@ void ofApp::mouseReleased(int x, int y, int button){
 //==============================================================
 // private method
 //==============================================================
+
+//--------------------------------------------------------------
+void ofApp::draw_3d_view()
+{
+	ofEnableAlphaBlending();
+	cam.begin();
+
+	ofDrawAxis(100);
+	draw_plane();
+	cam1->draw_camera_position();
+	cam2->draw_camera_position();
+	cam.end();
+}
+
+//--------------------------------------------------------------
+void ofApp::draw_plane()
+{
+	ofPushMatrix();
+	ofSetColor(255, 32);
+	ofTranslate(PLANE_SIZE / 2, 0, PLANE_SIZE / 2);
+	ofDrawBox(ofPoint(0, 0, 0), PLANE_SIZE, 0.1, PLANE_SIZE);
+	ofPopMatrix();
+}
