@@ -17,10 +17,11 @@ public:
 	void update();
 	void draw_processed_image(int x, int y);
 	void draw_camera_position();
+	void draw_rays();
 
 	// getter
 	ofVec3f getPosition() { return position; }
-	vector<ofVec3f> getRays() { return rays; }
+	vector<ofVec3f> getRays() { return rays_global; }
 
 	// setter
 	//void setPosition(ofVec3f _position) { position = _position; }
@@ -31,6 +32,7 @@ private:
 	void setup_camera(int id);
 	void image_prcessing();
 	void marker_to_ray();
+	ofVec3f calc_global_ray(ofVec3f _ray);
 
 	ofVideoGrabber cam;
 
@@ -63,4 +65,5 @@ private:
 	int cam_w;
 	int cam_h;
 	vector<ofVec3f> rays;
+	vector<ofVec3f> rays_global;
 };

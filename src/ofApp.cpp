@@ -32,6 +32,7 @@ void ofApp::setup()
 	cam.setDistance(100);
 
 	mode = MODE_IMAGE_PROCESSING;
+	sequence = SEQUENCE_RUN;
 }
 
 //--------------------------------------------------------------
@@ -41,7 +42,22 @@ void ofApp::update()
 	cam1->update();
 	cam2->update();
 
-	// calc fude position
+	// calc cross point
+	calc_cross_point_2d();
+
+	switch (sequence)
+	{
+	case SEQUENCE_CALIBRATION:
+		calibration_2d();
+		break;
+
+	case SEQUENCE_RUN:
+		correct_position_2d();
+		break;
+
+	default:
+		break;
+	}
 
 	// send osc message
 
@@ -108,6 +124,8 @@ void ofApp::keyPressed(int key){
 	default:
 		break;
 	}
+
+	set_calib_seq(key);
 }
 
 //--------------------------------------------------------------
@@ -148,8 +166,12 @@ void ofApp::draw_3d_view()
 
 	ofDrawAxis(100);
 	draw_plane();
+
 	cam1->draw_camera_position();
 	cam2->draw_camera_position();
+
+	cam1->draw_rays();
+	cam2->draw_rays();
 
 	cam.end();
 }
@@ -162,4 +184,41 @@ void ofApp::draw_plane()
 	ofTranslate(PLANE_SIZE / 2, 0, PLANE_SIZE / 2);
 	ofDrawBox(ofPoint(0, 0, 0), PLANE_SIZE, 0.1, PLANE_SIZE);
 	ofPopMatrix();
+}
+
+//--------------------------------------------------------------
+void ofApp::calibration_2d()
+{
+
+}
+
+//--------------------------------------------------------------
+void ofApp::calc_cross_point_2d()
+{
+	//for each (auto l1 in cam1->getRays())
+	//{
+
+	//}
+}
+
+//--------------------------------------------------------------
+void ofApp::correct_position_2d()
+{
+
+}
+
+//--------------------------------------------------------------
+void ofApp::set_calib_seq(int key)
+{
+	if (key != OF_KEY_RIGHT) return;
+
+	// set next sequence 
+	calib_seq = static_cast<CALIB_SEQUENCE>(calib_seq + 1);
+
+	if (calib_seq >= CALIB_NONE)
+	{
+		calib_seq = CALIB_LT;
+	}
+
+	cout << "caliblation sequence " << calib_seq << endl;
 }

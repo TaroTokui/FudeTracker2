@@ -14,10 +14,22 @@ static const int PLANE_SIZE = 100;
 
 enum APP_VIEW_MODE {
 	MODE_IMAGE_PROCESSING,
-	//MODE_CALIBRATION,
-	//MODE_RUN,
 	MODE_3D,
 };
+
+enum APP_SEQUENCE {
+	SEQUENCE_CALIBRATION,
+	SEQUENCE_RUN,
+};
+
+enum CALIB_SEQUENCE {
+	CALIB_LT = 0,
+	CALIB_RT,
+	CALIB_RB,
+	CALIB_LB,
+	CALIB_NONE,
+};
+
 
 class ofApp : public ofBaseApp{
 
@@ -37,6 +49,10 @@ private:
 
 	void draw_3d_view();
 	void draw_plane();
+	void calibration_2d();
+	void calc_cross_point_2d();
+	void correct_position_2d();
+	void set_calib_seq(int key);
 
 	// tracking camera
 	CameraRay *cam1;
@@ -51,4 +67,6 @@ private:
 	bool showGui;
 
 	APP_VIEW_MODE mode;
+	APP_SEQUENCE sequence;
+	CALIB_SEQUENCE calib_seq;
 };

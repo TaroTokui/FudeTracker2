@@ -88,13 +88,29 @@ void CameraRay::draw_camera_position()
 	//ofDrawAxis(20);
 
 	// draw rays
-	ofSetColor(255, 255, 0);
-	for each (auto ray in rays)
-	{
-		ofDrawLine(ofVec3f(0, 0, 0), ray * RAY_LENGTH);
-	}
+	//ofSetColor(255, 255, 0);
+	//for each (auto ray in rays)
+	//{
+	//	ofDrawLine(ofVec3f(0, 0, 0), ray * RAY_LENGTH);
+	//}
 
 	ofPopMatrix();
+
+	ofPopStyle();
+}
+
+//--------------------------------------------------------------
+void CameraRay::draw_rays()
+{
+	ofPushStyle();
+	ofSetColor(255);
+
+	// draw rays
+	ofSetColor(255, 0, 255);
+	for each (auto ray in rays_global)
+	{
+		ofDrawLine(position, position.get() + ray * RAY_LENGTH);
+	}
 
 	ofPopStyle();
 }
@@ -188,7 +204,8 @@ void CameraRay::image_prcessing()
 void CameraRay::marker_to_ray()
 {
 	rays.clear();
-
+	rays_global.clear();
+	
 	auto origin = ofVec3f(0, 0, -fulcrum_distance);
 
 	for each (auto target in markers)
@@ -198,8 +215,37 @@ void CameraRay::marker_to_ray()
 		auto ray = dir.normalize();
 
 		rays.push_back(ray);
+		rays_global.push_back(calc_global_ray(ray));
 
-		cout << dir.normalize() << endl;
+		//cout << dir.normalize() << endl;
 
 	}
+}
+
+//--------------------------------------------------------------
+ofVec3f CameraRay::calc_global_ray(ofVec3f _ray)
+{
+	// unit vector
+	ofVec3f Znormal(0, 0, 1);
+	ofVec3f Xnormal(1, 0, 0);
+	ofVec3f Ynormal(0, 1, 0);
+
+	// roll, pitch, yaw
+	float roll = 0;
+	float pitch = 0;
+	float yaw = atan2f(_ray.x, _ray.z) + rotation.get().y;
+
+	// calc quaternion
+	ofQuaternion qr(roll, Znormal);
+	ofQuaternion qp(pitch, Xnormal);
+	ofQuaternion qy(yaw, Ynormal);
+	ofQuaternion qt;    //  total quaternion
+
+	qt = qr * qp * qy;
+
+	ofVec3f qAxsis;
+	float   angle;
+	qt.getRotate(angle, qAxsis);
+
+	return (_ray.rotate(angle, qAxsis)).normalize();
 }
