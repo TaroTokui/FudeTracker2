@@ -39,7 +39,7 @@ void ofApp::setup()
 	
 	adjust_gui.setup(adjust_params, "adjust_settings.xml");
 	adjust_gui.loadFromFile("adjust_settings.xml");
-
+	adjust_gui.setPosition(gui.getPosition() + ofPoint(gui.getWidth(),0));
 
 	showGui = true;
 
@@ -139,6 +139,7 @@ void ofApp::draw(){
 	}
 
 	ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 10);
+	draw_calibration_state();
 }
 
 //--------------------------------------------------------------
@@ -425,4 +426,48 @@ ofVec2f ofApp::adjust_position(ofPoint pos)
 		y = tmp;
 	}
 	return ofVec2f(x, y);
+}
+
+//--------------------------------------------------------------
+void ofApp::draw_calibration_state()
+{
+	string text = "";
+
+	text = "App sequence: ";
+	switch (sequence)
+	{
+	case SEQUENCE_CALIBRATION:
+		text += "calibration";
+		break;
+	case SEQUENCE_RUN:
+		text += "run";
+		break;
+	default:
+		break;
+	}
+
+	ofDrawBitmapString(text, 10, ofGetHeight() - 24);
+
+	text = "calibration sequence: ";
+	switch (calib_seq)
+	{
+	case CALIB_LT:
+		text += "top left";
+		break;
+	case CALIB_RT:
+		text += "top right";
+		break;
+	case CALIB_RB:
+		text += "bottom right";
+		break;
+	case CALIB_LB:
+		text += "bottom left";
+		break;
+	case CALIB_NONE:
+		break;
+	default:
+		break;
+	}
+
+	ofDrawBitmapString(text, 10, ofGetHeight() - 12);
 }
