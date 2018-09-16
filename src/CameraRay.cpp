@@ -27,6 +27,8 @@ CameraRay::CameraRay(int w, int h, int index)
 	params.add(position.set("pos", ofVec3f(0, 0, 0), ofVec3f(-100, -100, -100), ofVec3f(100, 100, 100)));
 	params.add(rotation.set("rotation", ofVec3f(0, 0, 0), ofVec3f(-90, -90, -90), ofVec3f(90, 90, 90)));
 	params.add(up_vector.set("up", ofVec3f(0, 0, 0), ofVec3f(-1, -1, -10), ofVec3f(1, 1, 1)));
+	params.add(mask_tl.set("mask_tl", ofVec2f(0, 0), ofVec2f(0, 0), ofVec2f(cam_w, cam_h)));
+	params.add(mask_br.set("mask_br", ofVec2f(cam_w, cam_h), ofVec2f(0, 0), ofVec2f(cam_w, cam_h)));
 	params.add(fulcrum_distance.set("fulcrum_distance", 1, 0, 2));
 
 	// setup contour finder
@@ -58,12 +60,32 @@ void CameraRay::update()
 //--------------------------------------------------------------
 void CameraRay::draw_processed_image(int x, int y)
 {
-	int w = cam_w / 2;
-	int h = cam_h / 2;
+	float size = 0.5;
+	int w = cam_w * size;
+	int h = cam_h * size;
 
 	processed_fbo.draw(x, y, w, h);
 
-	img.setFromPixels(morph_mat.data, cam_w, cam_h, OF_IMAGE_GRAYSCALE);
+	// draw mask rectangle
+	ofPushStyle();
+	ofNoFill();
+	ofSetColor(255, 0, 0);
+	ofRectangle mask_rect = ofRectangle(mask_tl.get(), mask_br.get());
+	float mask_w = (mask_br.get().x - mask_tl.get().x) * size;
+	float mask_h = (mask_br.get().y - mask_tl.get().y) * size;
+	//ofDrawRectangle(mask_rect.position + ofPoint(x,y), mask_rect.width * size, mask_rect.height * size);
+
+	ofPoint tl = ofPoint(x, y) + mask_tl.get() * size;
+	ofPoint bl = ofPoint(x, y) + (ofPoint(mask_tl.get().x, mask_br.get().y)) * size;
+	ofPoint br = ofPoint(x, y) + mask_br.get() * size;
+	ofPoint tr = ofPoint(x, y) + (ofPoint(mask_br.get().x, mask_tl.get().y)) * size;
+	ofDrawLine(tl, tr);
+	ofDrawLine(tr, br);
+	ofDrawLine(br, bl);
+	ofDrawLine(bl, tl);
+	ofPopStyle();
+
+	img.setFromPixels(binary_mat.data, cam_w, cam_h, OF_IMAGE_GRAYSCALE);
 	img.update();
 	img.draw(x, y+h, w, h);
 
@@ -162,13 +184,13 @@ void CameraRay::image_prcessing()
 	threshold(gray_mat, binary_mat, binarize_threshold, 255, THRESH_BINARY);
 
 	// noise reduction
-	morphologyEx(binary_mat, morph_mat, MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
+	//morphologyEx(binary_mat, morph_mat, MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
 
 	// find contour
 	contour_finder.setMinArea(contour_min);
 	contour_finder.setMaxArea(contour_max);
 
-	contour_finder.findContours(morph_mat);
+	contour_finder.findContours(binary_mat);
 
 	// set markers
 	markers.clear();

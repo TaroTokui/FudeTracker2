@@ -78,8 +78,8 @@ private:
 	ofxOscSender sender;
 
 	// gui
-	ofxPanel gui, adjust_gui;
-	ofParameterGroup gui_params;
+	ofxPanel cam1_gui, cam2_gui, adjust_gui;
+	//ofParameterGroup gui_params;
 	bool showGui;
 
 	ofParameterGroup adjust_params;

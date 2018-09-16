@@ -61,6 +61,8 @@ private:
 	ofParameter<ofVec3f> rotation;
 	ofParameter<ofVec3f> up_vector;
 	ofParameter<float> fulcrum_distance;
+	ofParameter<ofVec2f> mask_tl;
+	ofParameter<ofVec2f> mask_br;
 
 	int cam_w;
 	int cam_h;

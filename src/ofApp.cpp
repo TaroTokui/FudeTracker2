@@ -12,21 +12,31 @@ void ofApp::setup()
 
 	// initialize camera
 	//setup_camera();
-	cam1 = new CameraRay(CAMERA_W, CAMERA_H, 1);
+	cam1 = new CameraRay(CAMERA_W, CAMERA_H, 0);
 	cam2 = new CameraRay(CAMERA_W, CAMERA_H, 2);
 
 	// load shader
 
 	// setup gui
-	gui_params.setName("camera settings");
-	gui_params.add(cam1->params);
-	gui_params.add(cam2->params);
+	//gui_params.setName("camera settings");
+	//gui_params.add(cam1->params);
+	//gui_params.add(cam2->params);
 
-	string gui_settings = "settings";
-	gui.setName(gui_settings);
-	gui.setup(gui_params);
-	gui.loadFromFile(gui_settings + ".xml");
+	string gui_settings;
+	// cam 1
+	gui_settings = "cam1_settings";
+	cam1_gui.setName(gui_settings);
+	cam1_gui.setup(cam1->params, gui_settings + ".xml");
+	cam1_gui.loadFromFile(gui_settings + ".xml");
 
+	// cam 2
+	gui_settings = "cam2_settings";
+	cam2_gui.setName(gui_settings);
+	cam2_gui.setup(cam2->params, gui_settings + ".xml");
+	cam2_gui.loadFromFile(gui_settings + ".xml");
+	cam2_gui.setPosition(cam1_gui.getPosition() + ofPoint(cam1_gui.getWidth(), 0));
+
+	// other
 	adjust_params.setName("params");
 	adjust_params.add(manual_mode.set("manual mode", false));
 	adjust_params.add(flipX.set("flipX", true));
@@ -39,7 +49,8 @@ void ofApp::setup()
 	
 	adjust_gui.setup(adjust_params, "adjust_settings.xml");
 	adjust_gui.loadFromFile("adjust_settings.xml");
-	adjust_gui.setPosition(gui.getPosition() + ofPoint(gui.getWidth(),0));
+	//adjust_gui.setPosition(gui.getPosition() + ofPoint(gui.getWidth(),0));
+	adjust_gui.setPosition(cam2_gui.getPosition() + ofPoint(cam2_gui.getWidth(), 0));
 
 	showGui = true;
 
@@ -134,7 +145,8 @@ void ofApp::draw(){
 	ofSetColor(255);
 	if (showGui)
 	{
-		gui.draw();
+		cam1_gui.draw();
+		cam2_gui.draw();
 		adjust_gui.draw();
 	}
 
@@ -305,7 +317,7 @@ void ofApp::set_calib_seq(int key)
 		calib_seq = CALIB_LT;
 	}
 
-	cout << "caliblation sequence " << calib_seq << endl;
+	//cout << "caliblation sequence " << calib_seq << endl;
 }
 
 //--------------------------------------------------------------
@@ -402,7 +414,7 @@ void ofApp::send_data(ofPoint pos, bool isTouched)
 	}
 	sender.sendMessage(m, false);
 
-	cout << posNormal.x << " " << posNormal.y << " " << isTouched << endl;
+	//cout << posNormal.x << " " << posNormal.y << " " << isTouched << endl;
 
 }
 
@@ -431,6 +443,9 @@ ofVec2f ofApp::adjust_position(ofPoint pos)
 //--------------------------------------------------------------
 void ofApp::draw_calibration_state()
 {
+
+	ofDrawBitmapString("h: set homography mat", 10, ofGetHeight() - 36);
+
 	string text = "";
 
 	text = "App sequence: ";
