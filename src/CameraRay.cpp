@@ -15,6 +15,8 @@ CameraRay::CameraRay(int w, int h, int index)
 	gray_mat = Mat(h, w, CV_8UC1);
 	binary_mat = Mat(h, w, CV_8UC1);
 	morph_mat = Mat(h, w, CV_8UC1);
+	mask_mat = Mat(h, w, CV_8UC1);
+	roi_mat = Mat(h, w, CV_8UC1);
 
 	img.allocate(w, h, OF_IMAGE_GRAYSCALE);
 	processed_fbo.allocate(w, h);
@@ -73,7 +75,6 @@ void CameraRay::draw_processed_image(int x, int y)
 	ofRectangle mask_rect = ofRectangle(mask_tl.get(), mask_br.get());
 	float mask_w = (mask_br.get().x - mask_tl.get().x) * size;
 	float mask_h = (mask_br.get().y - mask_tl.get().y) * size;
-	//ofDrawRectangle(mask_rect.position + ofPoint(x,y), mask_rect.width * size, mask_rect.height * size);
 
 	ofPoint tl = ofPoint(x, y) + mask_tl.get() * size;
 	ofPoint bl = ofPoint(x, y) + (ofPoint(mask_tl.get().x, mask_br.get().y)) * size;
@@ -85,7 +86,7 @@ void CameraRay::draw_processed_image(int x, int y)
 	ofDrawLine(bl, tl);
 	ofPopStyle();
 
-	img.setFromPixels(binary_mat.data, cam_w, cam_h, OF_IMAGE_GRAYSCALE);
+	img.setFromPixels(morph_mat.data, cam_w, cam_h, OF_IMAGE_GRAYSCALE);
 	img.update();
 	img.draw(x, y+h, w, h);
 
@@ -183,14 +184,23 @@ void CameraRay::image_prcessing()
 	// binarize with threshold
 	threshold(gray_mat, binary_mat, binarize_threshold, 255, THRESH_BINARY);
 
+	// draw mask
+	//mask_mat.zeros(cam_h, cam_w, CV_8UC1);
+	rectangle(mask_mat, cv::Point(0, 0), cv::Point(cam_w, cam_h), cv::Scalar(0), -1);	// reset mat
+	rectangle(mask_mat, ofxCv::toCv(mask_tl.get()), ofxCv::toCv(mask_br.get()), cv::Scalar(255), -1);
+
+	// mask
+	rectangle(roi_mat, cv::Point(0, 0), cv::Point(cam_w, cam_h), cv::Scalar(0), -1);		// reset mat
+	binary_mat.copyTo(roi_mat, mask_mat);
+
 	// noise reduction
-	//morphologyEx(binary_mat, morph_mat, MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
+	morphologyEx(roi_mat, morph_mat, MORPH_OPEN, cv::Mat(), cv::Point(-1, -1), 1);
 
 	// find contour
 	contour_finder.setMinArea(contour_min);
 	contour_finder.setMaxArea(contour_max);
 
-	contour_finder.findContours(binary_mat);
+	contour_finder.findContours(morph_mat);
 
 	// set markers
 	markers.clear();

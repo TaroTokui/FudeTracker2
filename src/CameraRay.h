@@ -43,6 +43,8 @@ private:
 	cv::Mat gray_mat;
 	cv::Mat binary_mat;
 	cv::Mat morph_mat;
+	cv::Mat mask_mat;
+	cv::Mat roi_mat;
 
 	ofxCv::ContourFinder contour_finder;
 
