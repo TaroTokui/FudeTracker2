@@ -15,6 +15,15 @@ void ofApp::setup()
 	cam1 = new CameraRay(CAMERA_W, CAMERA_H, 0);
 	cam2 = new CameraRay(CAMERA_W, CAMERA_H, 2);
 
+	// TWELITE
+	string port = "COM3";
+	ofXml XML;
+	if (XML.exists("//TWELITE_PORT")) {
+		port = XML.getValue<string>("//TWELITE_PORT");
+	}
+	int baud = 115200;
+	tweliteReceiver.setup(port, baud);
+
 	// load shader
 
 	// setup gui
@@ -36,6 +45,12 @@ void ofApp::setup()
 	cam2_gui.loadFromFile(gui_settings + ".xml");
 	cam2_gui.setPosition(cam1_gui.getPosition() + ofPoint(cam1_gui.getWidth(), 0));
 
+	// twelite
+	twelite_gui.setup(tweliteReceiver.params, "twelite_settings.xml");
+	twelite_gui.loadFromFile("twelite_settings.xml");
+	twelite_gui.setPosition(cam2_gui.getPosition() + ofPoint(cam2_gui.getWidth(), 0));
+
+
 	// other
 	adjust_params.setName("params");
 	adjust_params.add(manual_mode.set("manual mode", false));
@@ -50,7 +65,7 @@ void ofApp::setup()
 	adjust_gui.setup(adjust_params, "adjust_settings.xml");
 	adjust_gui.loadFromFile("adjust_settings.xml");
 	//adjust_gui.setPosition(gui.getPosition() + ofPoint(gui.getWidth(),0));
-	adjust_gui.setPosition(cam2_gui.getPosition() + ofPoint(cam2_gui.getWidth(), 0));
+	adjust_gui.setPosition(twelite_gui.getPosition() + ofPoint(twelite_gui.getWidth(), 0));
 
 	showGui = true;
 
@@ -74,6 +89,9 @@ void ofApp::setup()
 //--------------------------------------------------------------
 void ofApp::update()
 {
+	// receive acceleration
+	tweliteReceiver.update();
+
 	// grab new frame and find rays
 	cam1->update();
 	cam2->update();
@@ -148,10 +166,18 @@ void ofApp::draw(){
 		cam1_gui.draw();
 		cam2_gui.draw();
 		adjust_gui.draw();
+		twelite_gui.draw();
 	}
 
 	ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 10);
 	draw_calibration_state();
+}
+
+//--------------------------------------------------------------
+void ofApp::exit()
+{
+	tweliteReceiver.exit();
+	ofSleepMillis(100);
 }
 
 //--------------------------------------------------------------
@@ -181,6 +207,10 @@ void ofApp::keyPressed(int key){
 
 	case 'r':
 		cam.reset();
+		break;
+
+	case 't':
+		tweliteReceiver.setBaseAcc();
 		break;
 
 	default:

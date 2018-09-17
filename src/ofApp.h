@@ -6,6 +6,7 @@
 
 #include "CameraRay.h"
 #include "HomographyTransform.h"
+#include "TweliteReceiver.h"
 
 static const int CAMERA_W = 1280;
 static const int CAMERA_H = 720;
@@ -37,6 +38,7 @@ class ofApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
+		void exit();
 
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -71,6 +73,9 @@ private:
 	CHomographyTransform homography;
 	ofVec2f src_points[4];
 
+	// TWELITE
+	TweliteReceiver tweliteReceiver;
+
 	//OSC params------------------
 	string targetIP;
 	int targetPort;
@@ -78,7 +83,7 @@ private:
 	ofxOscSender sender;
 
 	// gui
-	ofxPanel cam1_gui, cam2_gui, adjust_gui;
+	ofxPanel cam1_gui, cam2_gui, adjust_gui, twelite_gui;
 	//ofParameterGroup gui_params;
 	bool showGui;
 
