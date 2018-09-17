@@ -8,6 +8,8 @@
 #include "HomographyTransform.h"
 #include "TweliteReceiver.h"
 
+//static const int CAMERA_W = 1920;
+//static const int CAMERA_H = 1080;
 static const int CAMERA_W = 1280;
 static const int CAMERA_H = 720;
 
@@ -19,8 +21,10 @@ enum APP_VIEW_MODE {
 };
 
 enum APP_SEQUENCE {
+	SEQUENCE_SET_CAMERA,
 	SEQUENCE_CALIBRATION,
 	SEQUENCE_RUN,
+	SEQUENCE_TEST,
 };
 
 enum CALIB_SEQUENCE {
@@ -52,6 +56,7 @@ private:
 	void draw_3d_view();
 	void draw_plane();
 	void calibration_2d();
+	void calc_cross_point();
 	ofPoint calc_cross_point_2d(ofPoint p1, ofPoint p2, ofPoint p3, ofPoint p4);
 	ofPoint correct_position_2d(ofVec3f p);
 	void set_calib_seq(int key);
@@ -60,6 +65,7 @@ private:
 	void send_data(ofPoint pos, bool isTouched);
 	ofVec2f adjust_position(ofPoint pos);
 	void draw_calibration_state();
+	//void 
 
 	// tracking camera
 	CameraRay *cam1;
@@ -96,6 +102,10 @@ private:
 	ofParameter<ofVec2f> camera_scale;
 	ofParameter<ofVec2f> camera_scale_tune;
 	ofParameter<bool> manual_mode;
+	ofParameter<ofVec2f> src_tl;
+	ofParameter<ofVec2f> src_tr;
+	ofParameter<ofVec2f> src_br;
+	ofParameter<ofVec2f> src_bl;
 
 	APP_VIEW_MODE mode;
 	APP_SEQUENCE sequence;

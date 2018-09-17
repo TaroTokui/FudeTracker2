@@ -12,15 +12,15 @@ void ofApp::setup()
 
 	// initialize camera
 	//setup_camera();
-	cam1 = new CameraRay(CAMERA_W, CAMERA_H, 0);
+	cam1 = new CameraRay(CAMERA_W, CAMERA_H, 1);
 	cam2 = new CameraRay(CAMERA_W, CAMERA_H, 2);
 
 	// TWELITE
 	string port = "COM3";
-	ofXml XML;
-	if (XML.exists("//TWELITE_PORT")) {
-		port = XML.getValue<string>("//TWELITE_PORT");
-	}
+	//ofXml XML;
+	//if (XML.exists("//TWELITE_PORT")) {
+	//	port = XML.getValue<string>("//TWELITE_PORT");
+	//}
 	int baud = 115200;
 	tweliteReceiver.setup(port, baud);
 
@@ -61,6 +61,10 @@ void ofApp::setup()
 	adjust_params.add(camera_offset_tune.set("offset tune", ofVec2f(0, 0), ofVec2f(-0.1, -0.1), ofVec2f(0.1, 0.1)));
 	adjust_params.add(camera_scale.set("scale", ofVec2f(1, 1), ofVec2f(0.3, 0.3), ofVec2f(1.5, 1.5)));
 	adjust_params.add(camera_scale_tune.set("scale tune", ofVec2f(0, 0), ofVec2f(-0.1, -0.1), ofVec2f(0.1, 0.1)));
+	adjust_params.add(src_tl.set("src_tl", ofVec2f(0, 0), ofVec2f(0, 0), ofVec2f(100, 100)));
+	adjust_params.add(src_tr.set("src_tr", ofVec2f(100, 0), ofVec2f(0, 0), ofVec2f(100, 100)));
+	adjust_params.add(src_br.set("src_br", ofVec2f(100, 100), ofVec2f(0, 0), ofVec2f(100, 100)));
+	adjust_params.add(src_bl.set("src_bl", ofVec2f(0, 100), ofVec2f(0, 0), ofVec2f(100, 100)));
 	
 	adjust_gui.setup(adjust_params, "adjust_settings.xml");
 	adjust_gui.loadFromFile("adjust_settings.xml");
@@ -75,10 +79,10 @@ void ofApp::setup()
 	mode = MODE_IMAGE_PROCESSING;
 	sequence = SEQUENCE_RUN;
 
-	src_points[0] = ofVec2f(0, 0);
-	src_points[1] = ofVec2f(100, 0);
-	src_points[2] = ofVec2f(100, 100);
-	src_points[3] = ofVec2f(0, 100);
+	src_points[0] = src_tl;
+	src_points[1] = src_tr;
+	src_points[2] = src_br;
+	src_points[3] = src_bl;
 
 	updateHomography();
 
@@ -97,23 +101,15 @@ void ofApp::update()
 	cam2->update();
 
 	// calc cross point
-	cross_points.clear();
-	ofPoint p1 = cam1->getPosition();
-	ofPoint p3 = cam2->getPosition();
-	for each (auto ray1 in cam1->getRays())
-	{
-		auto p2 = ray1;
-
-		for each (auto ray2 in cam2->getRays())
-		{
-			auto p4 = ray2;
-			cross_points.push_back(calc_cross_point_2d(p1, p2, p3, p4));
-		}
-	}
-
+	calc_cross_point();
 
 	switch (sequence)
 	{
+	case SEQUENCE_SET_CAMERA:
+		//calibration_2d();
+		// set cameras phsical position
+		break;
+
 	case SEQUENCE_CALIBRATION:
 		calibration_2d();
 		break;
@@ -130,7 +126,7 @@ void ofApp::update()
 
 	ofVec3f p = ofVec3f(cross_points[0].x, cross_points[0].z, 0);
 	//cout << p << endl;
-	//cout << correct_position_2d(p) << endl;
+	cout << correct_position_2d(p) << endl;
 
 	// send osc message
 	send_data(p, ofGetKeyPressed(' '));
@@ -169,7 +165,7 @@ void ofApp::draw(){
 		twelite_gui.draw();
 	}
 
-	ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 10);
+	//ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 10);
 	draw_calibration_state();
 }
 
@@ -285,6 +281,10 @@ void ofApp::draw_3d_view()
 	}
 
 	cam.end();
+
+	ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 10);
+	ofDrawBitmapString("cam 1 angle: " + ofToString(ofGetFrameRate()), 10, 22);
+	ofDrawBitmapString("cam 2 angle: " + ofToString(ofGetFrameRate()), 10, 34);
 }
 
 //--------------------------------------------------------------
@@ -310,6 +310,24 @@ ofPoint ofApp::correct_position_2d(ofVec3f p)
 }
 
 //--------------------------------------------------------------
+void ofApp::calc_cross_point()
+{
+	cross_points.clear();
+	ofPoint p1 = cam1->getPosition();
+	ofPoint p3 = cam2->getPosition();
+	for each (auto ray1 in cam1->getRays())
+	{
+		auto p2 = ray1;
+
+		for each (auto ray2 in cam2->getRays())
+		{
+			auto p4 = ray2;
+			cross_points.push_back(calc_cross_point_2d(p1, p2, p3, p4));
+		}
+	}
+}
+
+//--------------------------------------------------------------
 ofPoint ofApp::calc_cross_point_2d(ofPoint p1, ofPoint p2, ofPoint p3, ofPoint p4)
 {
 	//cout << "p1:" << p1 << ", p2:" << p2 << ", p3:" << p3 << ", p4:" << p4 << endl;
@@ -317,9 +335,9 @@ ofPoint ofApp::calc_cross_point_2d(ofPoint p1, ofPoint p2, ofPoint p3, ofPoint p
 	auto a3 = (p4.z - p3.z) / (p4.x - p3.x);
 
 	auto x = (a1*p1.x - p1.z - a3*p3.x + p3.z) / (a1 - a3);
-	auto y = (p2.z - p1.z) / (p2.x - p1.x)*(x - p1.x) + p1.z;
+	auto z = (p2.z - p1.z) / (p2.x - p1.x)*(x - p1.x) + p1.z;
 
-	ofPoint p(x, 0, y);
+	ofPoint p(x, 0, z);
 
 	//cout << p << endl;
 
@@ -367,6 +385,12 @@ void ofApp::updateHomography()
 	dstPoints.push_back(cv::Point2f(1, 1));
 	dstPoints.push_back(cv::Point2f(0, 1));
 	homography.calcHomography(srcPoints, dstPoints);
+
+	// update src_points for gui
+	src_tl.set(src_points[0]);
+	src_tr.set(src_points[1]);
+	src_br.set(src_points[2]);
+	src_bl.set(src_points[3]);
 
 	//cout << homography.getTransformedPoint(ofPoint(0.5,0.5)) << endl;
 }
@@ -426,13 +450,6 @@ void ofApp::send_data(ofPoint pos, bool isTouched)
 
 	if (manual_mode)
 	{
-		//if (ofGetKeyPressed(' '))
-		//{
-		//	m.addIntArg(1);
-		//}
-		//else {
-		//	m.addIntArg(0);
-		//}
 		m.addIntArg(1);
 	}
 	else if (isTouched)

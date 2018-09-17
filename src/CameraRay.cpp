@@ -28,7 +28,7 @@ CameraRay::CameraRay(int w, int h, int index)
 	params.add(contour_max.set("contour_max", 1000, 0, 10000));
 	params.add(position.set("pos", ofVec3f(0, 0, 0), ofVec3f(-100, -100, -100), ofVec3f(100, 100, 100)));
 	params.add(rotation.set("rotation", ofVec3f(0, 0, 0), ofVec3f(-90, -90, -90), ofVec3f(90, 90, 90)));
-	params.add(up_vector.set("up", ofVec3f(0, 0, 0), ofVec3f(-1, -1, -10), ofVec3f(1, 1, 1)));
+	params.add(up_vector.set("up", ofVec3f(0, 1, 0), ofVec3f(-1, -1, -1), ofVec3f(1, 1, 1)));
 	params.add(mask_tl.set("mask_tl", ofVec2f(0, 0), ofVec2f(0, 0), ofVec2f(cam_w, cam_h)));
 	params.add(mask_br.set("mask_br", ofVec2f(cam_w, cam_h), ofVec2f(0, 0), ofVec2f(cam_w, cam_h)));
 	params.add(fulcrum_distance.set("fulcrum_distance", 1, 0, 2));
@@ -210,7 +210,7 @@ void CameraRay::image_prcessing()
 		auto x = marker.x / (float)cam_w;
 		auto y = marker.y / (float)cam_h;
 
-		auto x2 = ofMap(x, 0, 1, -1, 1);
+		auto x2 = ofMap(x, 0, 1, 1, -1);
 		auto y2 = ofMap(y, 0, 1, 1, -1);
 
 		ofVec2f pos = ofVec2f(x2, y2);
@@ -241,8 +241,8 @@ void CameraRay::marker_to_ray()
 
 	for each (auto target in markers)
 	{
-		//auto dir = ofVec3f(target.x, target.y, 0) - origin;	// 3d
-		auto dir = (ofVec3f(target.x, target.y, 0) - origin) * ofVec3f(1,0,1);	// 2d (x-z)
+		auto dir = ofVec3f(target.x, target.y, 0) - origin;	// 3d
+		//auto dir = (ofVec3f(target.x, target.y, 0) - origin) * ofVec3f(1,0,1);	// 2d (x-z)
 		auto ray = dir.normalize();
 
 		rays.push_back(ray);
@@ -263,7 +263,7 @@ ofVec3f CameraRay::calc_global_ray(ofVec3f _ray)
 
 	// roll, pitch, yaw
 	float roll = 0;
-	float pitch = 0;
+	float pitch = atan2f(_ray.y, _ray.z) + rotation.get().x;
 	float yaw = atan2f(_ray.x, _ray.z) + rotation.get().y;
 
 	// calc quaternion
