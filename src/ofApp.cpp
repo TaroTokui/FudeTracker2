@@ -122,14 +122,17 @@ void ofApp::update()
 		break;
 	}
 
-	if (cross_points.size() < 1) return;
-
-	ofVec3f p = ofVec3f(cross_points[0].x, cross_points[0].z, 0);
-	//cout << p << endl;
-	cout << correct_position_2d(p) << endl;
-
+	// set touch flag and position
+	if (cross_points.size() > 0) {
+		touchFlag = true;
+		touchPoint = ofVec3f(cross_points[0].x, cross_points[0].z, 0);
+	}
+	else {
+		touchFlag = false;
+	}
+	
 	// send osc message
-	send_data(p, ofGetKeyPressed(' '));
+	send_data(correct_position_2d(touchPoint), touchFlag);
 }
 
 //--------------------------------------------------------------
@@ -229,6 +232,7 @@ void ofApp::mouseMoved(int x, int y ){
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
 
+	send_data(ofPoint((float)x / (float)CAMERA_W, (float)y / (float)CAMERA_H), true);
 }
 
 //--------------------------------------------------------------
@@ -425,6 +429,7 @@ void ofApp::setup_osc()
 		oscAddress = "/kinect1";
 	}
 
+	cout << "ip: " << targetIP << ", port: " << targetPort << ", address: " << oscAddress << endl;
 	sender.setup(targetIP, targetPort); // open an outgoing connection to HOST:PORT
 }
 
@@ -461,7 +466,7 @@ void ofApp::send_data(ofPoint pos, bool isTouched)
 	}
 	sender.sendMessage(m, false);
 
-	//cout << posNormal.x << " " << posNormal.y << " " << isTouched << endl;
+	cout << posNormal.x << " " << posNormal.y << " " << isTouched << endl;
 
 }
 

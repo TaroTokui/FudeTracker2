@@ -87,6 +87,8 @@ private:
 	int targetPort;
 	string oscAddress;
 	ofxOscSender sender;
+	bool touchFlag;
+	ofVec3f touchPoint;
 
 	// gui
 	ofxPanel cam1_gui, cam2_gui, adjust_gui, twelite_gui;
