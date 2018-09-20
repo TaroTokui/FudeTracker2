@@ -65,7 +65,7 @@ private:
 	void send_data(ofPoint pos, bool isTouched);
 	ofVec2f adjust_position(ofPoint pos);
 	void draw_calibration_state();
-	//void 
+	ofPoint calc_centroid(vector<ofPoint> _points);
 
 	// tracking camera
 	CameraRay *cam1;

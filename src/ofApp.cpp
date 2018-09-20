@@ -125,7 +125,8 @@ void ofApp::update()
 	// set touch flag and position
 	if (cross_points.size() > 0) {
 		touchFlag = true;
-		touchPoint = ofVec3f(cross_points[0].x, cross_points[0].z, 0);
+		//touchPoint = ofVec3f(cross_points[0].x, cross_points[0].z, 0);
+		touchPoint = calc_centroid(cross_points) * 0.1 + touchPoint * 0.9;
 	}
 	else {
 		touchFlag = false;
@@ -537,4 +538,19 @@ void ofApp::draw_calibration_state()
 	}
 
 	ofDrawBitmapString(text, 10, ofGetHeight() - 12);
+}
+
+//--------------------------------------------------------------
+ofPoint ofApp::calc_centroid(vector<ofPoint> _points)
+{
+	ofPoint centroid(0,0);
+	int count = _points.size();
+	for (size_t i = 0; i < count; i++)
+	{
+		//centroid += _points[i] / (float)count;
+		centroid.x += _points[i].x / (float)count;
+		centroid.y += _points[i].z / (float)count;
+	}
+
+	return centroid;
 }
