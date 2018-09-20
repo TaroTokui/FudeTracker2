@@ -290,6 +290,7 @@ void ofApp::draw_3d_view()
 	ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 10);
 	ofDrawBitmapString("cam 1 angle: " + ofToString(ofGetFrameRate()), 10, 22);
 	ofDrawBitmapString("cam 2 angle: " + ofToString(ofGetFrameRate()), 10, 34);
+	ofDrawBitmapString("height: " + ofToString(wall_to_point), 10, 46);
 }
 
 //--------------------------------------------------------------
@@ -327,7 +328,22 @@ void ofApp::calc_cross_point()
 		for each (auto ray2 in cam2->getRays())
 		{
 			auto p4 = ray2;
-			cross_points.push_back(calc_cross_point_2d(p1, p2, p3, p4));
+			auto p = calc_cross_point_2d(p1, p2, p3, p4);
+			//cross_points.push_back(calc_cross_point_2d(p1, p2, p3, p4));
+
+			// calc hight
+			float h1 = calc_height(p1, p2, p);
+			float h2 = calc_height(p3, p4, p);
+
+			// check hight
+			cout << "height: " << h1 << ", diff: " << abs(h1 - h2) << endl;
+			wall_to_point = h1;
+			if (abs(h1 - h2) < 1.5)
+			{
+				// add cross point
+				cross_points.push_back(p);
+			}
+
 		}
 	}
 }
@@ -347,6 +363,14 @@ ofPoint ofApp::calc_cross_point_2d(ofPoint p1, ofPoint p2, ofPoint p3, ofPoint p
 	//cout << p << endl;
 
 	return p;
+}
+
+//--------------------------------------------------------------
+float ofApp::calc_height(ofPoint p1, ofPoint p2, ofPoint input)
+{
+	float t = (p1.x - input.x) / (p1.x - p2.x);	// calc line
+	float h = (1-t) * p1.y + t * p2.y;
+	return h;
 }
 
 //--------------------------------------------------------------
@@ -467,7 +491,7 @@ void ofApp::send_data(ofPoint pos, bool isTouched)
 	}
 	sender.sendMessage(m, false);
 
-	cout << posNormal.x << " " << posNormal.y << " " << isTouched << endl;
+	//cout << posNormal.x << " " << posNormal.y << " " << isTouched << endl;
 
 }
 

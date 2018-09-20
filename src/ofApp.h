@@ -66,6 +66,7 @@ private:
 	ofVec2f adjust_position(ofPoint pos);
 	void draw_calibration_state();
 	ofPoint calc_centroid(vector<ofPoint> _points);
+	float calc_height(ofPoint p1, ofPoint p2, ofPoint input);
 
 	// tracking camera
 	CameraRay *cam1;
@@ -89,6 +90,7 @@ private:
 	ofxOscSender sender;
 	bool touchFlag;
 	ofVec3f touchPoint;
+	float wall_to_point;
 
 	// gui
 	ofxPanel cam1_gui, cam2_gui, adjust_gui, twelite_gui;
