@@ -6,7 +6,7 @@
 
 #include "CameraRay.h"
 #include "HomographyTransform.h"
-#include "TweliteReceiver.h"
+//#include "TweliteReceiver.h"
 
 //static const int CAMERA_W = 1920;
 //static const int CAMERA_H = 1080;
@@ -14,6 +14,7 @@ static const int CAMERA_W = 1280;
 static const int CAMERA_H = 720;
 
 static const int PLANE_SIZE = 100;
+static const int MAX_TOUCH_DISTANCE = 100;
 
 enum APP_VIEW_MODE {
 	MODE_IMAGE_PROCESSING,
@@ -67,6 +68,7 @@ private:
 	void draw_calibration_state();
 	ofPoint calc_centroid(vector<ofPoint> _points);
 	float calc_height(ofPoint p1, ofPoint p2, ofPoint input);
+	//void draw_fude_direction();
 
 	// tracking camera
 	CameraRay *cam1;
@@ -81,7 +83,7 @@ private:
 	ofVec2f src_points[4];
 
 	// TWELITE
-	TweliteReceiver tweliteReceiver;
+	//TweliteReceiver tweliteReceiver;
 
 	//OSC params------------------
 	string targetIP;
@@ -93,7 +95,7 @@ private:
 	float wall_to_point;
 
 	// gui
-	ofxPanel cam1_gui, cam2_gui, adjust_gui, twelite_gui;
+	ofxPanel cam1_gui, cam2_gui, adjust_gui;// , twelite_gui;
 	//ofParameterGroup gui_params;
 	bool showGui;
 
@@ -110,6 +112,7 @@ private:
 	ofParameter<ofVec2f> src_tr;
 	ofParameter<ofVec2f> src_br;
 	ofParameter<ofVec2f> src_bl;
+	ofParameter<float> touch_distance;
 
 	APP_VIEW_MODE mode;
 	APP_SEQUENCE sequence;

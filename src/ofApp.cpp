@@ -12,17 +12,17 @@ void ofApp::setup()
 
 	// initialize camera
 	//setup_camera();
-	cam1 = new CameraRay(CAMERA_W, CAMERA_H, 1);
+	cam1 = new CameraRay(CAMERA_W, CAMERA_H, 0);
 	cam2 = new CameraRay(CAMERA_W, CAMERA_H, 2);
 
 	// TWELITE
-	string port = "COM3";
-	//ofXml XML;
-	//if (XML.exists("//TWELITE_PORT")) {
-	//	port = XML.getValue<string>("//TWELITE_PORT");
-	//}
-	int baud = 115200;
-	tweliteReceiver.setup(port, baud);
+	//string port = "COM3";
+	////ofXml XML;
+	////if (XML.exists("//TWELITE_PORT")) {
+	////	port = XML.getValue<string>("//TWELITE_PORT");
+	////}
+	//int baud = 115200;
+	//tweliteReceiver.setup(port, baud);
 
 	// load shader
 
@@ -46,9 +46,9 @@ void ofApp::setup()
 	cam2_gui.setPosition(cam1_gui.getPosition() + ofPoint(cam1_gui.getWidth(), 0));
 
 	// twelite
-	twelite_gui.setup(tweliteReceiver.params, "twelite_settings.xml");
-	twelite_gui.loadFromFile("twelite_settings.xml");
-	twelite_gui.setPosition(cam2_gui.getPosition() + ofPoint(cam2_gui.getWidth(), 0));
+	//twelite_gui.setup(tweliteReceiver.params, "twelite_settings.xml");
+	//twelite_gui.loadFromFile("twelite_settings.xml");
+	//twelite_gui.setPosition(cam2_gui.getPosition() + ofPoint(cam2_gui.getWidth(), 0));
 
 
 	// other
@@ -65,11 +65,12 @@ void ofApp::setup()
 	adjust_params.add(src_tr.set("src_tr", ofVec2f(100, 0), ofVec2f(0, 0), ofVec2f(100, 100)));
 	adjust_params.add(src_br.set("src_br", ofVec2f(100, 100), ofVec2f(0, 0), ofVec2f(100, 100)));
 	adjust_params.add(src_bl.set("src_bl", ofVec2f(0, 100), ofVec2f(0, 0), ofVec2f(100, 100)));
+	adjust_params.add(touch_distance.set("touch_distance", 30, 0, 100));
 	
 	adjust_gui.setup(adjust_params, "adjust_settings.xml");
 	adjust_gui.loadFromFile("adjust_settings.xml");
 	//adjust_gui.setPosition(gui.getPosition() + ofPoint(gui.getWidth(),0));
-	adjust_gui.setPosition(twelite_gui.getPosition() + ofPoint(twelite_gui.getWidth(), 0));
+	adjust_gui.setPosition(cam2_gui.getPosition() + ofPoint(cam2_gui.getWidth(), 0));
 
 	showGui = true;
 
@@ -94,7 +95,7 @@ void ofApp::setup()
 void ofApp::update()
 {
 	// receive acceleration
-	tweliteReceiver.update();
+	//tweliteReceiver.update();
 
 	// grab new frame and find rays
 	cam1->update();
@@ -124,12 +125,14 @@ void ofApp::update()
 
 	// set touch flag and position
 	if (cross_points.size() > 0) {
-		touchFlag = true;
+		//touchFlag = true;
 		//touchPoint = ofVec3f(cross_points[0].x, cross_points[0].z, 0);
+		touchFlag = (wall_to_point < touch_distance) ? true : false;
 		touchPoint = calc_centroid(cross_points) * 0.1 + touchPoint * 0.9;
 	}
 	else {
 		touchFlag = false;
+		//wall_to_point = MAX_TOUCH_DISTANCE;
 	}
 	
 	// send osc message
@@ -166,7 +169,7 @@ void ofApp::draw(){
 		cam1_gui.draw();
 		cam2_gui.draw();
 		adjust_gui.draw();
-		twelite_gui.draw();
+		//twelite_gui.draw();
 	}
 
 	//ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 10);
@@ -176,8 +179,8 @@ void ofApp::draw(){
 //--------------------------------------------------------------
 void ofApp::exit()
 {
-	tweliteReceiver.exit();
-	ofSleepMillis(100);
+	//tweliteReceiver.exit();
+	//ofSleepMillis(100);
 }
 
 //--------------------------------------------------------------
@@ -209,9 +212,9 @@ void ofApp::keyPressed(int key){
 		cam.reset();
 		break;
 
-	case 't':
-		tweliteReceiver.setBaseAcc();
-		break;
+	//case 't':
+	//	tweliteReceiver.setBaseAcc();
+	//	break;
 
 	default:
 		break;
@@ -260,6 +263,7 @@ void ofApp::draw_3d_view()
 	ofDrawAxis(100);
 	draw_plane();
 
+#if 1
 	cam1->draw_camera_position();
 	cam2->draw_camera_position();
 
@@ -284,6 +288,9 @@ void ofApp::draw_3d_view()
 		ofDrawSphere(1);
 		ofPopMatrix();
 	}
+#endif
+
+	//draw_fude_direction();
 
 	cam.end();
 
@@ -292,6 +299,44 @@ void ofApp::draw_3d_view()
 	ofDrawBitmapString("cam 2 angle: " + ofToString(ofGetFrameRate()), 10, 34);
 	ofDrawBitmapString("height: " + ofToString(wall_to_point), 10, 46);
 }
+
+////--------------------------------------------------------------
+//void ofApp::draw_fude_direction()
+//{
+//
+//	// unit vector
+//	ofVec3f Znormal(0, 0, 1);
+//	ofVec3f Xnormal(1, 0, 0);
+//	ofVec3f Ynormal(0, 1, 0);
+//
+//	// roll, pitch, yaw
+//	float roll = tweliteReceiver.getAcc().z;
+//	float pitch = tweliteReceiver.getAcc().x;
+//	float yaw = tweliteReceiver.getAcc().y;
+//
+//	// calc quaternion
+//	ofQuaternion qr(roll, Znormal);
+//	ofQuaternion qp(pitch, Xnormal);
+//	ofQuaternion qy(yaw, Ynormal);
+//	ofQuaternion qt;    //  total quaternion
+//
+//	qt = qr * qp * qy;
+//
+//	ofVec3f qAxsis;
+//	float   angle;
+//	qt.getRotate(angle, qAxsis);
+//
+//	ofPushMatrix();
+//	ofRotate(angle, qAxsis.x, qAxsis.y, qAxsis.z);
+//	//ofRotateX(tweliteReceiver.getAcc().x);
+//	//ofRotateY(tweliteReceiver.getAcc().y);
+//	//ofRotateZ(tweliteReceiver.getAcc().z);
+//	
+//	ofDrawRotationAxes(10, 0.1);
+//	ofDrawAxis(20);
+//	ofPopMatrix();
+//
+//}
 
 //--------------------------------------------------------------
 void ofApp::draw_plane()
@@ -336,12 +381,15 @@ void ofApp::calc_cross_point()
 			float h2 = calc_height(p3, p4, p);
 
 			// check hight
-			cout << "height: " << h1 << ", diff: " << abs(h1 - h2) << endl;
-			wall_to_point = h1;
+			//cout << "height: " << h1 << ", diff: " << abs(h1 - h2) << endl;
 			if (abs(h1 - h2) < 1.5)
 			{
 				// add cross point
 				cross_points.push_back(p);
+
+				// update height
+				wall_to_point = h1;
+
 			}
 
 		}
