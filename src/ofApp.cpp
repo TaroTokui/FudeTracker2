@@ -104,25 +104,6 @@ void ofApp::update()
 	// calc cross point
 	calc_cross_point();
 
-	switch (sequence)
-	{
-	case SEQUENCE_SET_CAMERA:
-		//calibration_2d();
-		// set cameras phsical position
-		break;
-
-	case SEQUENCE_CALIBRATION:
-		calibration_2d();
-		break;
-
-	case SEQUENCE_RUN:
-		//correct_position_2d();
-		break;
-
-	default:
-		break;
-	}
-
 	// set touch flag and position
 	if (cross_points.size() > 0) {
 		//touchFlag = true;
@@ -196,10 +177,6 @@ void ofApp::keyPressed(int key){
 		mode = MODE_3D;
 		break;
 
-	case 'h':
-		updateHomography();
-		break;
-
 	case 'g':
 		showGui = !showGui;
 		break;
@@ -216,11 +193,32 @@ void ofApp::keyPressed(int key){
 	//	tweliteReceiver.setBaseAcc();
 	//	break;
 
+	case OF_KEY_TAB:
+		sequence = SEQUENCE_CALIBRATION;
+		break;
+
+	case ' ':
+		sequence = SEQUENCE_RUN;
+		break;
+
 	default:
 		break;
 	}
 
-	set_calib_seq(key);
+	switch (sequence)
+	{
+	case SEQUENCE_CALIBRATION:
+		set_calib_seq(key);
+		break;
+
+	case SEQUENCE_RUN:
+		//correct_position_2d();
+		break;
+
+	default:
+		break;
+	}
+
 }
 
 //--------------------------------------------------------------
@@ -424,6 +422,23 @@ float ofApp::calc_height(ofPoint p1, ofPoint p2, ofPoint input)
 //--------------------------------------------------------------
 void ofApp::set_calib_seq(int key)
 {
+
+	if (key == 'h')
+	{
+		updateHomography();
+	}
+
+	if (key == 'u')
+	{
+		src_points[0] = src_tl;
+		src_points[1] = src_tr;
+		src_points[2] = src_br;
+		src_points[3] = src_bl;
+
+		updateHomography();
+
+	}
+
 	if (key == OF_KEY_RETURN)
 	{
 		if (cross_points.size() > 0)
